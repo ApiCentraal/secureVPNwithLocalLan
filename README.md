@@ -17,6 +17,8 @@ Somewhere -> VPN -> Localnetwork -> VPN -> Some anonymous gateway.
 
 This project provides a solution for securely connecting to your home network (Local LAN) while routing all outgoing traffic through a secure VPN gateway.
 
+For a detailed overview of what changed in this repository, see the [Changelog](./CHANGELOG.md).
+
 > [!IMPORTANT]
 > **View the Architecture Pipelines for a visual overview of the infrastructure:**
 >
