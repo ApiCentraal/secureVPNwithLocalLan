@@ -1,0 +1,12 @@
+.git
+.gitignore
+.vscode
+.azure
+images/
+**/*.drawio
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.log
