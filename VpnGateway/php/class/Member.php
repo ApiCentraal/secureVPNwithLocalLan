@@ -1,25 +1,24 @@
 <?php
+// @changed 2026-04-24 — delegates to Auth; removed hardcoded credentials
+declare(strict_types=1);
+
 namespace Phppot;
+
+require_once __DIR__ . '/../lib/bootstrap.php';
 
 class Member
 {
-
-    private $dbConn;
-
-    private $ds;
-
-    function __construct()
+    public function getMemberById($memberId): array
     {
+        return [
+            'id' => (int) $memberId,
+            'username' => \Auth::currentUsername(),
+        ];
     }
 
-    function getMemberById($memberId)
+    public function processLogin($username, $password): bool
     {
-        return $memberResult;
-    }
-    
-    public function processLogin($username, $password) {
-        if ($username == "login" && $password == "pass")
-         $_SESSION["userId"] = 1;
-         return true;
+        $errorCode = null;
+        return \Auth::attemptLogin((string) $username, (string) $password, $errorCode);
     }
 }
