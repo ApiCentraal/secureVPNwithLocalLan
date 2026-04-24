@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-This changelog summarizes the changes that were made to modernize, secure, containerize, and document the VPN gateway project.
+Future changes will be listed here.
+
+## v0.3 - 2026-04-24
+
+This release summarizes the changes that were made to modernize, secure, containerize, and document the VPN gateway project.
 
 ### Summary
 
@@ -74,6 +78,13 @@ This changelog summarizes the changes that were made to modernize, secure, conta
 
 - Added a repository-level changelog so the scope and evolution of the project are documented in one place.
 - Linked the changelog from the README so it is easy to find from the main project overview.
+
+### CI and review governance
+
+- Added a CodeQL security scan for PHP and JavaScript.
+- Added Dockerfile linting for the container images.
+- Documented allowed CI actions, security checks, and review expectations in `CONTRIBUTING.md`.
+- Added a pull request template with security and validation checkboxes.
 
 ## Notes
 
