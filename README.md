@@ -1,16 +1,37 @@
 # Secure VPN With Local Lan
 
+## Problem
 On the internet a VPN can mean two things.
-You had purchased some VPN subscription to use where ever to make a direct secure connection to an Internet Entry point where on the globe. 
-OR you have a vpn to your home/work location enable your local network on your roaming device.
+1. You had purchased some VPN subscription to use where ever to make a direct secure connection to an Internet Entry point where on the globe. 
+2. You have a vpn to your home/work location enable your local network on your roaming device.
+
 This is Both.
 
 This git describes and utilizes a VPN Connection to a home network with a secure VPN Connection to the internet. 
 
 Somewhere -> VPN -> Localnetwork -> VPN -> Some anonymous gateway.
+
+## Solution
+This project provides a solution for securely connecting to your home network (Local LAN) while routing all outgoing traffic through a secure VPN gateway.
+
+> [!IMPORTANT]
+> **View the Architecture Pipelines for a visual overview of the infrastructure:**
+> - **[Architecture Pipeline (English)](./ARCHITECTURE-PIPELINE.md)**
+> - **[Architectuur Pijplijn (Dutch)](./ARCHITECTUUR-PIJPLIJN.md)**
+
+## Concept
+
+1.  **Inbound**: Connect to your home from anywhere (Roaming).
+2.  **Outbound**: Your traffic leaves your home via an anonymized VPN tunnel.
+
+**Path**: `Roaming Device` -> `Incoming VPN` -> `Local Network` -> `VPN Gateway` -> `Anonymous Exit Node`
+
 ![](./images/vpnMap.drawio.png)
 
-I wrrote a very rudimental but working web interface to select diffrent VPN Gateway Connections
+## Interfaces
+
+### Web Control Center
+A modern PHP dashboard to monitor status and switch between VPN profiles.
 ![](./images/vpnPhpClient.png)
 
 Better use Home assistant to get information.
@@ -55,3 +76,5 @@ script-security 3
 up /etc/openvpn/up.sh
 ```
 to the server.conf
+
+
