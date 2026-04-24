@@ -1,139 +1,74 @@
 <?php
-namespace Phppot;
+// @changed 2026-04-24 — component-based view; injects dashboard state as JSON for AJAX bootstrap
+declare(strict_types=1);
 
-use \Phppot\Member;
+require_once __DIR__ . '/../lib/bootstrap.php';
 
-if (! empty($_SESSION["userId"])) {
-    require_once __DIR__ . './../class/Member.php';
-    $member = new Member();
+Auth::requireLoginRedirect('./index.php');
+
+$service = new VpnService();
+$dashboardError = null;
+
+try {
+    $dashboardState = $service->getDashboardState(90);
+} catch (Throwable $exception) {
+    $dashboardError = 'Unable to load the initial VPN dashboard state.';
+    $dashboardState = [
+        'activeState' => 'unknown',
+        'ipForwardEnabled' => false,
+        'currentConnection' => null,
+        'routeMode' => 'stopped',
+        'selectedAction' => 'stop',
+        'connections' => [],
+        'logLines' => [],
+        'updatedAt' => gmdate('c'),
+    ];
 }
+
+$username = Auth::currentUsername();
+$csrfToken = Csrf::token();
+
+$initialStatePayload = [
+    'success' => $dashboardError === null,
+    'error' => $dashboardError,
+    'data' => $dashboardState,
+];
+
+$initialStateJson = json_encode(
+    $initialStatePayload,
+    JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+);
 ?>
-
-
-<?php
-
-if ($conf = $_POST["conf"])  {
-#echo $conf;
-  if ($conf == "stop") {
-    shell_exec("sudo vpnadmin.sh stop");
-  } else if ($conf == "stop-route-local") {
-    shell_exec("sudo vpnadmin.sh stop route-local");
-} else {
-      shell_exec("sudo vpnadmin.sh start $conf");
-
-}
-
-}
-?>
-<html> 
-<head> 
-<script type="text/javascript"> 
-function createRequestObject() {
-     
-        var req;
-     
-        if(window.XMLHttpRequest){
-            // Firefox, Safari, Opera...
-            req = new XMLHttpRequest();
-        } else if(window.ActiveXObject) {
-            // Internet Explorer 5+
-            req = new ActiveXObject("Microsoft.XMLHTTP");
-        } else {
-            // There is an error creating the object, just as an old 
-            // browser is being used.
-            alert('There was a problem creating the XMLHttpRequest object');
-        } 
-     
-        return req;
-     
-    } 
-     
-    // Make the XMLHttpRequest object
-    var http = createRequestObject();
-     
-    function sendRequest() {
-        // Open PHP script for requests
-        http.open('get', '/openvpn/taillog.php'); 
-        http.onreadystatechange =  handleResponse; http.send(null);
-
-     }
-   function handleResponse() {
-     
-        if(http.readyState == 4 && http.status == 200){
-     
-            // Text returned FROM PHP script
-            var response = http.responseText;
-     
-            if(response) {
-                // UPDATE ajaxTest content
-                document.getElementById("log").innerHTML = response; 
-                setTimeout(update,1000);
-            } 
-     
-        } 
-    } 
-
-
-    function update() { sendRequest();
-    } 
-</script> 
-
-<title>Openvpn switcher</title>
-<link href="./view/css/style.css" rel="stylesheet" type="text/css" />
-<link rel='shortcut icon' href='/admin/img/favicons/favicon.ico' type='image/x-icon'>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VPN Control Center</title>
+    <link href="./view/css/style.css" rel="stylesheet" type="text/css">
 </head>
+<body class="dashboard-page">
+    <div class="screen-backdrop" aria-hidden="true"></div>
 
-<body onLoad="sendRequest()">
-    <div>
-        <div class="dashboard">
-            <div class="member-dashboard">
-<?php
-exec('sudo /usr/local/bin/vpnadmin.sh status', $output, $retval);  
+    <div class="app-shell">
+        <?php require __DIR__ . '/components/topbar.php'; ?>
 
-preg_match("/ActiveState=(.*)/",$output[0],$match);
-$activestate=$match[1];
-preg_match("/net.ipv4.ip_forward = (\d{1})/",$output[1],$match);
-$ipforward = $match[1];
-
-$output=null;
-$retval=null;
-exec('sudo /usr/local/bin/vpnadmin.sh ls', $output, $retval);  
-echo "<form name=\"vpn\" method=\"post\">";
-foreach($output as $conf) {
-
-  # * in front means its set.
-  # 
-  
-  if (substr($conf,0,1) == "*") {
-  $conf = substr($conf,2);
-  $name =  substr($conf,0,strlen($conf) -5);
-  echo "<input type=\"radio\" id=\"conf\" name=\"conf\" value=\"$conf\" checked=\"true\">$name<br>\n";
-} else {
-  $name =  substr($conf,0,strlen($conf) -5);
-  echo "<input type=\"radio\" id=\"conf\" name=\"conf\" value=\"$conf\">$name<br>\n";
-}
-}
-if (($activestate=="inactive") && ($ipforward== "0"))  {
-echo ' <input type="radio" id="conf" name="conf" value="stop" checked="true">stop<br>';
-} else {
-echo ' <input type="radio" id="conf" name="conf" value="stop">stop<br>';
-}
-if (($activestate=="inactive") && ($ipforward== "1"))  {
-echo '<input type="radio" id="conf" name="conf" value="stop-route-local" checked="true">stop route local<br>';
-} else {
-   echo '<input type="radio" id="conf" name="conf" value="stop-route-local">stop route local<br>';
-}
-?>
-<button type="submit">Submit</button>
-</form>
-
-
-
-
-<a href="./logout.php" class="logout-button">Logout</a>
-            </div>
-        </div>
-<pre><span id="log" name="log"></span></pre>
+        <main class="dashboard-layout">
+            <?php require __DIR__ . '/components/status-cards.php'; ?>
+            <?php require __DIR__ . '/components/connection-panel.php'; ?>
+            <?php require __DIR__ . '/components/log-panel.php'; ?>
+        </main>
     </div>
+
+    <script id="dashboardInitialState" type="application/json"><?php echo $initialStateJson; ?></script>
+    <script>
+    window.VPN_APP_CONFIG = {
+        csrfToken: <?php echo json_encode($csrfToken); ?>,
+        statusEndpoint: './api/status.php',
+        actionEndpoint: './api/action.php',
+        logsEndpoint: './api/logs.php'
+    };
+    </script>
+    <script src="./view/js/dashboard.js"></script>
 </body>
 </html>
