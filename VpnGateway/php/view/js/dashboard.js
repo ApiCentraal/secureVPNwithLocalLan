@@ -8,6 +8,7 @@
         form: document.getElementById('vpnSwitchForm'),
         connectionList: document.getElementById('connectionList'),
         alert: document.getElementById('appAlert'),
+        wanWarningBanner: document.getElementById('wanWarningBanner'),
         logOutput: document.getElementById('vpnLogOutput'),
         applyButton: document.getElementById('applySelectionButton'),
         refreshStatusButton: document.getElementById('refreshStatusButton'),
@@ -15,10 +16,12 @@
         activeState: document.getElementById('status-active-state'),
         routeMode: document.getElementById('status-route-mode'),
         currentConnection: document.getElementById('status-current-connection'),
+        wanUplink: document.getElementById('status-wan-uplink'),
         ipForward: document.getElementById('status-ip-forward'),
         updatedAt: document.getElementById('status-updated-at'),
         cardActiveState: document.getElementById('card-active-state'),
         cardRouteMode: document.getElementById('card-route-mode'),
+        cardWanUplink: document.getElementById('card-wan-uplink'),
         cardIpForward: document.getElementById('card-ip-forward')
     };
 
@@ -46,10 +49,22 @@
         }
 
         if (value === 'local') {
-            return 'Local Route';
+            return 'LAN Only';
         }
 
         return 'Stopped';
+    }
+
+    function formatWanState(isReachable, publicIpAddress) {
+        if (!isReachable) {
+            return 'Offline';
+        }
+
+        if (publicIpAddress) {
+            return 'Online · ' + publicIpAddress;
+        }
+
+        return 'Online';
     }
 
     function formatDate(isoDate) {
@@ -97,6 +112,21 @@
 
         if (tone !== 'error') {
             alertTimer = setTimeout(hideAlert, 5000);
+        }
+    }
+
+    function updateWanWarning(state) {
+        if (!refs.wanWarningBanner) {
+            return;
+        }
+
+        var isActive = String(state.activeState || '').toLowerCase() === 'active';
+        var internetReachable = Boolean(state.internetReachable);
+
+        if (isActive && !internetReachable) {
+            refs.wanWarningBanner.classList.remove('is-hidden');
+        } else {
+            refs.wanWarningBanner.classList.add('is-hidden');
         }
     }
 
@@ -177,8 +207,8 @@
 
         options.push({
             id: 'stop-route-local',
-            label: 'Route locally',
-            meta: 'Stop tunnel but keep local forwarding',
+            label: 'LAN only mode',
+            meta: 'Stop tunnel but keep local forwarding when WAN is down',
             active: false,
             system: true
         });
@@ -198,17 +228,23 @@
         var routeMode = String(state.routeMode || 'stopped').toLowerCase();
         var currentConnection = state.currentConnection ? formatTitle(state.currentConnection) : 'None';
         var ipForwardEnabled = Boolean(state.ipForwardEnabled);
+        var internetReachable = Boolean(state.internetReachable);
+        var publicIpAddress = state.publicIpAddress ? String(state.publicIpAddress) : '';
 
         if (refs.activeState) {
             refs.activeState.textContent = formatTitle(activeState);
         }
 
         if (refs.routeMode) {
-            refs.routeMode.textContent = formatRouteMode(routeMode);
+            refs.routeMode.textContent = routeMode === 'vpn' && !internetReachable ? 'VPN Tunnel (WAN down)' : formatRouteMode(routeMode);
         }
 
         if (refs.currentConnection) {
             refs.currentConnection.textContent = currentConnection;
+        }
+
+        if (refs.wanUplink) {
+            refs.wanUplink.textContent = formatWanState(internetReachable, publicIpAddress);
         }
 
         if (refs.ipForward) {
@@ -220,8 +256,11 @@
         }
 
         setCardTone(refs.cardActiveState, activeState === 'active' ? 'ok' : 'warn');
-        setCardTone(refs.cardRouteMode, routeMode === 'vpn' ? 'ok' : (routeMode === 'local' ? 'warn' : 'neutral'));
+        setCardTone(refs.cardRouteMode, routeMode === 'vpn' ? (internetReachable ? 'ok' : 'warn') : (routeMode === 'local' ? 'warn' : 'neutral'));
+        setCardTone(refs.cardWanUplink, internetReachable ? 'ok' : 'warn');
         setCardTone(refs.cardIpForward, ipForwardEnabled ? 'ok' : 'neutral');
+
+        updateWanWarning(state);
 
         renderConnectionList(state);
 

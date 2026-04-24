@@ -28,6 +28,32 @@ ipdisable() {
         iptables -t nat -D POSTROUTING ! -o lo -j MASQUERADE;
    fi
 }
+
+wan_status() {
+  wan_ip=`curl -fsS --connect-timeout 2 --max-time 4 https://icanhazip.com 2>/dev/null | tr -d '\r\n'`
+
+  if [ -n "$wan_ip" ]; then
+    echo internet_reachable:true
+    echo public_ip:$wan_ip
+  else
+    echo internet_reachable:false
+    echo public_ip:null
+  fi
+}
+
+get_openvpn_status() {
+  if command -v systemctl >/dev/null 2>&1 && systemctl show openvpn@client --no-page >/dev/null 2>&1; then
+    systemctl show openvpn@client --no-page
+    return
+  fi
+
+  if pgrep -x openvpn >/dev/null 2>&1; then
+    echo "ActiveState=active"
+  else
+    echo "ActiveState=inactive"
+  fi
+}
+
 if [ "$1" = "help" ]; 
 then
   echo "general help of a custom script to switch between vpn gateways"
@@ -40,7 +66,7 @@ fi
 
 if [ "$1" = "ls" ]; 
 then 
-   status=`systemctl show openvpn@client --no-page` 
+  status=`get_openvpn_status` 
 
    status_text=`echo "$status" | grep 'ActiveState='`
    if [ "$status_text" = "ActiveState=active" ];
@@ -63,7 +89,7 @@ then
 fi
 if [ "$1" = "status" ]
 then 
-   status=`systemctl show openvpn@client --no-page` 
+  status=`get_openvpn_status` 
 
 #echo $status
    status_text=`echo "$status" | grep 'ActiveState='` 
@@ -87,6 +113,8 @@ then
        break
      fi
    done
+
+   wan_status
 
 
 fi
@@ -132,13 +160,13 @@ echo "stopping"
     if [ -z "$2" ];
     then 
        date +"%b %d %T `hostname` vpnadmin: Forwaring stopped" >> /var/log/openvpn/ovpn.log
-       service openvpn@client stop
+       service openvpn stop
        ipdisable
     else
       if [ "route-local" = $2 ];
            then
              date +"%b %d %T `hostname` vpnadmin: Local routing started" >> /var/log/openvpn/ovpn.log
-	     service openvpn@client stop
+	     service openvpn stop
              ipenable
            fi
      fi
@@ -146,7 +174,7 @@ fi
 
 if [ ! "$1" ]
 then 
-   status=`systemctl show openvpn@client --no-page` 
+  status=`get_openvpn_status` 
 
    status_text=`echo "$status" | grep 'ActiveState='` 
 #   echo $status_text
@@ -186,4 +214,5 @@ then
       echo ip_address:null
       list_connections
    fi
+  wan_status
 fi

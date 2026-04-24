@@ -1,20 +1,28 @@
 <?php
-// @since  2026-04-24 — 4 status cards with data-tone CSS attributes (active/warn/muted)
+// @since  2026-04-24 — 5 status cards with WAN uplink awareness and data-tone CSS attributes
 $activeState = (string) ($dashboardState['activeState'] ?? 'unknown');
 $routeMode = (string) ($dashboardState['routeMode'] ?? 'unknown');
+$internetReachable = !empty($dashboardState['internetReachable']);
+$publicIpAddress = trim((string) ($dashboardState['publicIpAddress'] ?? ''));
 $currentConnection = (string) ($dashboardState['currentConnection'] ?? 'none');
 $ipForwardEnabled = !empty($dashboardState['ipForwardEnabled']);
 $updatedAt = (string) ($dashboardState['updatedAt'] ?? '');
 
 $activeTone = $activeState === 'active' ? 'ok' : 'warn';
-$routeTone = $routeMode === 'vpn' ? 'ok' : ($routeMode === 'local' ? 'warn' : 'neutral');
+$routeTone = $routeMode === 'vpn' ? ($internetReachable ? 'ok' : 'warn') : ($routeMode === 'local' ? 'warn' : 'neutral');
+$wanTone = $internetReachable ? 'ok' : 'warn';
 $ipTone = $ipForwardEnabled ? 'ok' : 'neutral';
 
 $routeLabel = 'Stopped';
 if ($routeMode === 'vpn') {
-    $routeLabel = 'VPN Tunnel';
+    $routeLabel = $internetReachable ? 'VPN Tunnel' : 'VPN Tunnel (WAN down)';
 } elseif ($routeMode === 'local') {
-    $routeLabel = 'Local Route';
+    $routeLabel = 'LAN Only';
+}
+
+$wanLabel = $internetReachable ? 'Online' : 'Offline';
+if ($internetReachable && $publicIpAddress !== '' && $publicIpAddress !== 'null') {
+    $wanLabel .= ' · ' . $publicIpAddress;
 }
 ?>
 <section class="panel panel-status">
@@ -37,6 +45,11 @@ if ($routeMode === 'vpn') {
         <article class="status-card" data-tone="neutral" id="card-current-connection">
             <p class="status-label">Current Profile</p>
             <p class="status-value" id="status-current-connection"><?php echo htmlspecialchars($currentConnection !== '' ? $currentConnection : 'none', ENT_QUOTES, 'UTF-8'); ?></p>
+        </article>
+
+        <article class="status-card" data-tone="<?php echo $wanTone; ?>" id="card-wan-uplink">
+            <p class="status-label">WAN Uplink</p>
+            <p class="status-value" id="status-wan-uplink"><?php echo htmlspecialchars($wanLabel, ENT_QUOTES, 'UTF-8'); ?></p>
         </article>
 
         <article class="status-card" data-tone="<?php echo $ipTone; ?>" id="card-ip-forward">

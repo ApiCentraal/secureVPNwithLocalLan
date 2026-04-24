@@ -18,6 +18,9 @@ final class VpnService
             'ipForwardEnabled' => $status['ipForwardEnabled'],
             'currentConnection' => $status['currentConnection'],
             'routeMode' => $status['routeMode'],
+            'internetReachable' => $status['internetReachable'],
+            'publicIpAddress' => $status['publicIpAddress'],
+            'connectivityMode' => $status['connectivityMode'],
             'selectedAction' => $selectedAction,
             'connections' => $connections,
             'logLines' => $this->getLogTail($logLines),
@@ -57,6 +60,8 @@ final class VpnService
         $activeState = 'unknown';
         $ipForwardEnabled = false;
         $currentConnection = null;
+        $internetReachable = false;
+        $publicIpAddress = null;
 
         foreach ($result['output'] as $line) {
             $line = trim($line);
@@ -73,6 +78,17 @@ final class VpnService
 
             if ($currentConnection === null && preg_match('/^[A-Za-z0-9._-]+$/', $line)) {
                 $currentConnection = $this->normalizeConnectionId($line);
+                continue;
+            }
+
+            if (preg_match('/^internet_reachable:(true|false)$/', $line, $match)) {
+                $internetReachable = $match[1] === 'true';
+                continue;
+            }
+
+            if (preg_match('/^public_ip:(.+)$/', $line, $match)) {
+                $value = trim($match[1]);
+                $publicIpAddress = ($value === '' || strtolower($value) === 'null') ? null : $value;
             }
         }
 
@@ -83,11 +99,23 @@ final class VpnService
             $routeMode = 'stopped';
         }
 
+        $connectivityMode = 'stopped';
+        if ($activeState === 'active' && $internetReachable) {
+            $connectivityMode = 'vpn';
+        } elseif ($activeState === 'active') {
+            $connectivityMode = 'degraded';
+        } elseif ($ipForwardEnabled) {
+            $connectivityMode = 'local';
+        }
+
         return [
             'activeState' => $activeState,
             'ipForwardEnabled' => $ipForwardEnabled,
             'currentConnection' => $currentConnection,
             'routeMode' => $routeMode,
+            'internetReachable' => $internetReachable,
+            'publicIpAddress' => $publicIpAddress,
+            'connectivityMode' => $connectivityMode,
             'exitCode' => $result['exitCode'],
             'rawOutput' => $result['output'],
         ];
