@@ -14,7 +14,7 @@ The repository CI is intentionally small and uses a limited set of GitHub Action
 - `shivammathur/setup-php@v2` for installing and configuring PHP in the CI runner.
 - `actions/setup-node@v4` for providing Node.js for JavaScript checks.
 - `actions/upload-artifact@v4` only when you need to publish logs, screenshots, or other build evidence.
-- `github/codeql-action/init@v3` and `github/codeql-action/analyze@v3` for CodeQL security scans.
+- `github/codeql-action/init@v4` and `github/codeql-action/analyze@v4` for CodeQL security scans.
 
 If you need additional actions, keep the workflow minimal and document the reason in the pull request.
 

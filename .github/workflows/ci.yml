@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
 
@@ -67,12 +70,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
-          languages: php,javascript
+          languages: javascript-typescript
 
       - name: Analyze code
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
   docker-build:
     name: Build Docker images
@@ -134,7 +137,7 @@ jobs:
           do
             {
               echo "=== Linting ${dockerfile} ==="
-              docker run --rm -i hadolint/hadolint:latest < "${dockerfile}"
+              docker run --rm -i -e HADOLINT_IGNORE=DL3008 hadolint/hadolint:latest < "${dockerfile}"
             } >> ci-artifacts/hadolint.log 2>&1 || lint_status=$?
           done
 

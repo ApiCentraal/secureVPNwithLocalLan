@@ -4,6 +4,12 @@
 
 Future changes will be listed here.
 
+### CI and security maintenance
+
+- Updated the security scan to use CodeQL v4 with a supported JavaScript and TypeScript configuration.
+- Opted GitHub Actions into the Node 24 runtime path to avoid current Node 20 deprecation warnings.
+- Adjusted Dockerfile linting so hadolint ignores the repository's intentional package-version pinning rule.
+
 ## v0.3 - 2026-04-24
 
 This release summarizes the changes that were made to modernize, secure, containerize, and document the VPN gateway project.
