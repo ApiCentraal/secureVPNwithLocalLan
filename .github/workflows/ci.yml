@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -137,7 +138,7 @@ jobs:
           do
             {
               echo "=== Linting ${dockerfile} ==="
-              docker run --rm -i -e HADOLINT_IGNORE=DL3008 hadolint/hadolint:latest < "${dockerfile}"
+              docker run --rm -i -e HADOLINT_IGNORE=DL3008 hadolint/hadolint@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e < "${dockerfile}"
             } >> ci-artifacts/hadolint.log 2>&1 || lint_status=$?
           done
 

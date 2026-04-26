@@ -4,6 +4,12 @@
 
 Future changes will be listed here.
 
+### Release operations
+
+- Added `UPSTREAM-CI-NOTE.md` to explain why fork-based pull requests can show `Checks 0` when the upstream default branch has no workflow.
+- Added `RELEASE-v0.3.1.md` so the patch release text can be reused as GitHub release notes.
+- Added `workflow_dispatch` to the CI workflow and pinned the hadolint container by digest for more reproducible manual runs.
+
 ## v0.3.1 - 2026-04-26
 
 This patch release stabilizes the CI security and container validation workflow after the initial v0.3 release.
