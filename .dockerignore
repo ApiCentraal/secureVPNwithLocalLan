@@ -2,6 +2,11 @@
 .gitignore
 .vscode
 .azure
+.runtime
+.env
+.env.*
+docker-compose.local.yml
+scripts/
 images/
 **/*.drawio
 **/*.png

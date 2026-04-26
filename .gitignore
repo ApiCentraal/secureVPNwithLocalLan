@@ -1,0 +1,22 @@
+# Local runtime and generated VPN test assets
+.runtime/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Common secret material
+*.key
+*.pem
+*.p12
+*.ovpn
+
+# Runtime artifacts
+ci-artifacts/
+*.log
+
+# Editor/OS noise
+.vscode/
+.DS_Store

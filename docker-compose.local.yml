@@ -1,0 +1,35 @@
+services:
+  openvpn-server:
+    image: securevpn-openvpn:local
+    container_name: securevpn-openvpn-local
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - securevpn-net
+    volumes:
+      - ./.runtime/openvpn-server:/etc/openvpn
+      - ./.runtime/openvpn-logs:/var/log/openvpn
+
+  gateway:
+    image: securevpn-gateway:local
+    container_name: securevpn-gateway-local
+    depends_on:
+      - openvpn-server
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8080:80"
+    networks:
+      - securevpn-net
+    env_file:
+      - .env.local
+    volumes:
+      - ./.runtime/openvpn-client-config:/etc/openvpn/clientConfig
+
+networks:
+  securevpn-net:
+    name: securevpn-net

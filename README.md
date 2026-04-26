@@ -55,6 +55,97 @@ Better use Home assistant to get information.
 
 two Machines are uses to create this setup. VpnGateway and incomingVpnServer.
 
+## Login credentials and role-based guidance
+
+The web control center is available at http://localhost:8080 when you run the gateway container locally.
+
+### For developers (local and test)
+
+Default fallback credentials in code are only meant for first-run local testing:
+
+- Username: login
+- Password: pass
+
+Use the automated local stack setup to generate your own local credentials and bring up both VPN containers:
+
+```bash
+./scripts/setup-local-vpn.sh
+```
+
+This creates `.env.local` (not committed), writes runtime tunnel configs under `.runtime/`, starts both containers, and activates the `localtest` tunnel profile.
+
+If you need manual overrides, use environment variables:
+
+```bash
+docker rm -f securevpn-gateway-local >/dev/null 2>&1 || true
+
+docker run -d \
+   --name securevpn-gateway-local \
+   -p 8080:80 \
+   -e VPN_ADMIN_USERNAME=mydevuser \
+   -e VPN_ADMIN_PASSWORD='Use-A-Strong-Temp-Password' \
+   securevpn-gateway:local
+```
+
+### For users and operators (production)
+
+Use a password hash in production and avoid plain-text credentials.
+
+1. Generate a bcrypt hash:
+
+```bash
+php -r "echo password_hash('YourStrongPassword', PASSWORD_BCRYPT, ['cost' => 12]) . PHP_EOL;"
+```
+
+2. Start or update the gateway with hashed credentials:
+
+```bash
+docker rm -f securevpn-gateway-local >/dev/null 2>&1 || true
+
+docker run -d \
+   --name securevpn-gateway-local \
+   -p 8080:80 \
+   -e VPN_ADMIN_USERNAME=myuser \
+   -e VPN_ADMIN_PASSWORD_HASH='$2y$12$replace_with_real_hash' \
+   securevpn-gateway:local
+```
+
+3. Store secrets outside version control, for example in a non-committed env file.
+
+For local production-like Docker runs, use `.env.local` with strict file permissions (`chmod 600`) and recreate containers after credential updates.
+
+### Credential rotation
+
+When you rotate credentials, recreate the container with new values and verify health:
+
+```bash
+docker inspect --format='{{.State.Health.Status}}' securevpn-gateway-local
+```
+
+### End-to-end VPN verification
+
+Run the verification script after startup to confirm tunnel activation:
+
+```bash
+./scripts/verify-local-vpn.sh
+```
+
+Expected result includes:
+
+- `ActiveState=active`
+- active profile name (for example `localtest`)
+- confirmation that `tun0` exists in the gateway container
+
+### Sensitive files and ignore policy
+
+Sensitive and runtime-generated files are intentionally ignored from version control:
+
+- `.runtime/` (generated keys and local test configs)
+- `.env` and `.env.*` (credential files)
+- `*.key`, `*.pem`, `*.p12`, `*.ovpn`
+
+Keep secrets in ignored local files only and never commit generated keys.
+
 The routing inteligence is the following Iptable/IP rule:
 
 ```
