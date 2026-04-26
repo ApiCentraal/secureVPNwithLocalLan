@@ -4,6 +4,10 @@
 
 Future changes will be listed here.
 
+## v0.3.1 - 2026-04-26
+
+This patch release stabilizes the CI security and container validation workflow after the initial v0.3 release.
+
 ### CI and security maintenance
 
 - Updated the security scan to use CodeQL v4 with a supported JavaScript and TypeScript configuration.
