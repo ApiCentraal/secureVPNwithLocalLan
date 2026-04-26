@@ -55,6 +55,52 @@ Better use Home assistant to get information.
 
 two Machines are uses to create this setup. VpnGateway and incomingVpnServer.
 
+## Debian package installation (gateway host)
+
+The `debianpackage` branch contains Debian packaging for host-based gateway installation.
+
+### Build package
+
+```bash
+dpkg-buildpackage -us -uc
+```
+
+### Install package
+
+```bash
+sudo dpkg -i ../securevpn-gateway_0.3.1-1_all.deb
+sudo apt-get -f install
+```
+
+### Upgrade package
+
+Install a newer `.deb` with `dpkg -i`. Existing package conffiles are preserved by dpkg semantics unless explicitly replaced.
+
+### Remove or purge package
+
+```bash
+sudo apt-get remove securevpn-gateway
+sudo apt-get purge securevpn-gateway
+```
+
+`purge` removes package-managed policy artifacts such as `/etc/sudoers.d/vpn-gateway` but intentionally keeps operator runtime data (for example OpenVPN profile files and logs) unless removed manually.
+
+### Installed paths (gateway package)
+
+- Web app: `/var/www/securevpn-gateway`
+- Admin wrapper: `/usr/local/bin/vpnadmin.sh`
+- Rsyslog rule: `/etc/rsyslog.d/openvpn.conf`
+- Docs: `/usr/share/doc/securevpn-gateway`
+
+### Post-install behavior
+
+Package post-install scripts prepare host runtime paths and policy integration:
+
+- creates `/etc/openvpn/clientConfig`
+- creates `/var/log/openvpn/ovpn.log`
+- refreshes rsyslog when available
+- enforces scoped sudoers for `www-data` to run `/usr/local/bin/vpnadmin.sh`
+
 ## Login credentials and role-based guidance
 
 The web control center is available at http://localhost:8080 when you run the gateway container locally.

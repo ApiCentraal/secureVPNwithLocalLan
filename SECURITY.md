@@ -176,3 +176,33 @@ Constants are defined in `lib/Auth.php` (`MAX_LOGIN_ATTEMPTS`, `LOGIN_WINDOW_SEC
 
 - The web interface is intended for a **trusted local network** only; do not expose port 80/443 to the public internet without an additional authentication layer (e.g., VPN-in-VPN or client certificate).
 - Log tailing reads directly from `/var/log/openvpn/ovpn.log`; ensure that file is not world-readable on the host.
+
+---
+
+## Debian package security notes
+
+When installed via Debian package, apply these checks after `dpkg -i`:
+
+1. Verify scoped sudoers policy:
+
+```bash
+sudo visudo -cf /etc/sudoers.d/vpn-gateway
+cat /etc/sudoers.d/vpn-gateway
+```
+
+Expected scope:
+
+```text
+www-data ALL=(root) NOPASSWD: /usr/local/bin/vpnadmin.sh
+```
+
+2. Verify runtime path permissions:
+
+```bash
+ls -ld /etc/openvpn/clientConfig
+ls -l /var/log/openvpn/ovpn.log
+```
+
+3. Re-validate credentials are not default values (`login` / `pass`) in production by setting environment variables for your web service unit.
+
+4. If package is purged, confirm whether local OpenVPN profile files and logs should be manually removed according to your retention policy.

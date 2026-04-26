@@ -55,3 +55,9 @@ If the upstream repository does not have the workflow on its default branch, pul
 
 - `1d39112` docs: add release and upstream CI notes
 - `bb5ce95` feat(local-dev): add reproducible local VPN compose workflow
+
+## Packaging Progress (debianpackage branch)
+
+- Added initial Debian package skeleton for `securevpn-gateway`.
+- Added maintainer lifecycle scripts for idempotent runtime setup and safe purge behavior.
+- Added package-oriented installation and security guidance in README and SECURITY policy documentation.
