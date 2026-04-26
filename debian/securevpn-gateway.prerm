@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|deconfigure|upgrade|failed-upgrade)
+        # Keep user-managed runtime data and conffiles intact.
+        ;;
+esac
+
+exit 0

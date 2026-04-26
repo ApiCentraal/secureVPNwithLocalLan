@@ -10,20 +10,20 @@ Homepage: https://github.com/Bram-diederik/secureVPNwithLocalLan
 Package: securevpn-gateway
 Architecture: all
 Depends:
- ${misc:Depends},
- apache2 | nginx,
- php-cli,
- php-common,
- libapache2-mod-php | php-fpm,
- openvpn,
- sudo,
- rsyslog,
- curl,
- iproute2,
- iptables
+${misc:Depends},
+apache2 | nginx,
+php-cli,
+php-common,
+libapache2-mod-php | php-fpm,
+openvpn,
+sudo,
+rsyslog,
+curl,
+iproute2,
+iptables
 Description: Secure VPN gateway web control center
- A PHP-based VPN gateway dashboard for selecting outbound OpenVPN profiles,
- monitoring tunnel state, and providing local-route fallback controls.
- .
- This package installs the gateway web application, vpnadmin helper script,
- and rsyslog integration snippet for OpenVPN runtime logs.
+A PHP-based VPN gateway dashboard for selecting outbound OpenVPN profiles,
+monitoring tunnel state, and providing local-route fallback controls.
+.
+This package installs the gateway web application, vpnadmin helper script,
+and rsyslog integration snippet for OpenVPN runtime logs.

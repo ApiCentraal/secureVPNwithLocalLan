@@ -1,0 +1,50 @@
+#!/bin/sh
+set -e
+
+SUDOERS_FILE="/etc/sudoers.d/vpn-gateway"
+SUDOERS_CONTENT='www-data ALL=(root) NOPASSWD: /usr/local/bin/vpnadmin.sh'
+
+create_runtime_paths() {
+    install -d -m 755 /etc/openvpn/clientConfig
+    install -d -m 755 /var/log/openvpn
+
+    if [ ! -f /var/log/openvpn/ovpn.log ]; then
+        install -m 664 /dev/null /var/log/openvpn/ovpn.log
+    fi
+
+    if id -u www-data >/dev/null 2>&1; then
+        chown www-data:www-data /var/log/openvpn/ovpn.log || true
+    fi
+}
+
+ensure_sudoers_scope() {
+    if [ ! -f "$SUDOERS_FILE" ] || ! grep -Fq "$SUDOERS_CONTENT" "$SUDOERS_FILE"; then
+        printf '%s\n' "$SUDOERS_CONTENT" > "$SUDOERS_FILE"
+        chmod 440 "$SUDOERS_FILE"
+    fi
+
+    if command -v visudo >/dev/null 2>&1; then
+        visudo -cf "$SUDOERS_FILE" >/dev/null 2>&1 || true
+    fi
+}
+
+refresh_rsyslog() {
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl reload rsyslog >/dev/null 2>&1 || systemctl restart rsyslog >/dev/null 2>&1 || true
+        return
+    fi
+
+    if command -v service >/dev/null 2>&1; then
+        service rsyslog reload >/dev/null 2>&1 || service rsyslog restart >/dev/null 2>&1 || true
+    fi
+}
+
+case "$1" in
+    configure|reconfigure|abort-upgrade|abort-remove|abort-deconfigure)
+        create_runtime_paths
+        ensure_sudoers_scope
+        refresh_rsyslog
+        ;;
+esac
+
+exit 0
