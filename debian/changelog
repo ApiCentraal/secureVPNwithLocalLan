@@ -1,0 +1,6 @@
+securevpn-gateway (0.3.1-1) unstable; urgency=medium
+
+  * Initial Debian packaging skeleton for gateway host deployment.
+  * Add package metadata, install mapping, and conffile declaration.
+
+ -- Eddy-ApiCentraal <help@apicentraal.nl>  Sat, 26 Apr 2026 02:30:00 +0200

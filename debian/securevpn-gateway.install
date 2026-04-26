@@ -1,0 +1,15 @@
+VpnGateway/php/index.php var/www/securevpn-gateway/
+VpnGateway/php/login-action.php var/www/securevpn-gateway/
+VpnGateway/php/logout.php var/www/securevpn-gateway/
+VpnGateway/php/statuschange.php var/www/securevpn-gateway/
+VpnGateway/php/input.php var/www/securevpn-gateway/
+VpnGateway/php/taillog.php var/www/securevpn-gateway/
+VpnGateway/php/api/* var/www/securevpn-gateway/api/
+VpnGateway/php/class/* var/www/securevpn-gateway/class/
+VpnGateway/php/lib/* var/www/securevpn-gateway/lib/
+VpnGateway/php/view/* var/www/securevpn-gateway/view/
+VpnGateway/bin/vpnadmin.sh usr/local/bin/
+VpnGateway/etc/rsyslog.d/openvpn.conf etc/rsyslog.d/
+README.md usr/share/doc/securevpn-gateway/
+SECURITY.md usr/share/doc/securevpn-gateway/
+CHANGELOG.md usr/share/doc/securevpn-gateway/
