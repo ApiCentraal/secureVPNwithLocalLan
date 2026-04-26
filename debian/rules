@@ -2,3 +2,7 @@
 
 %:
 	dh $@
+
+override_dh_usrlocal:
+	# Keep existing /usr/local/bin install path for vpnadmin compatibility.
+	true
