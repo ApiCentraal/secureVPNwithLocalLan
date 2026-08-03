@@ -1,25 +1,34 @@
-<?php 
-session_start();
-if(empty($_SESSION["userId"])) {
-die();
+<?php
+// @changed 2026-04-24 — VpnService::getStatusSnapshot, try/catch; removed shell_exec
+declare(strict_types=1);
+
+require_once __DIR__ . '/lib/bootstrap.php';
+
+if (!Auth::isLoggedIn()) {
+   http_response_code(401);
+   exit();
 }
 
-
-exec('sudo /usr/local/bin/vpnadmin.sh status', $output, $retval);  
-
-preg_match("/ActiveState=(.*)/",$output[0],$match);
-$activestate=$match[1];
-preg_match("/net.ipv4.ip_forward = (\d{1})/",$output[1],$match);
-$ipforward = $match[1];
-
-if (empty($_SESSION["activestate"])) 
-{
-$_SESSION["activestate"] =$activestate;
-$_SESSION["ipforward"]= $ipforward;
-} else {
-if (($_SESSION["activestate"] !=$activestate) || ($_SESSION["ipforward"]!= $ipforward)) {
-   echo "change";
+$service = new VpnService();
+try {
+   $status = $service->getStatusSnapshot();
+} catch (Throwable $exception) {
+   http_response_code(500);
+   exit();
 }
- 
+
+$fingerprint = implode('|', [
+   (string) ($status['activeState'] ?? 'unknown'),
+   !empty($status['ipForwardEnabled']) ? '1' : '0',
+   (string) ($status['currentConnection'] ?? 'none'),
+]);
+
+if (empty($_SESSION['statusFingerprint'])) {
+   $_SESSION['statusFingerprint'] = $fingerprint;
+   exit();
 }
- ?>
+
+if ($_SESSION['statusFingerprint'] !== $fingerprint) {
+   $_SESSION['statusFingerprint'] = $fingerprint;
+   echo 'change';
+}
